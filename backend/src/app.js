@@ -1,36 +1,67 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const cookieParser = require("cookie-parser");
-const mongoSanitize = require("express-mongo-sanitize");
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
 
-const { generalLimiter } = require("./middleware/rateLimiter");
-const { errorHandler, notFound } = require("./middleware/errorHandler");
-const routes = require("./routes");
+import routes from "./routes/index.js";
+
+import errorMiddleware from "./shared/middlewares/error.middleware.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  })
-);
-app.use(helmet());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(generalLimiter);
+/*
+|--------------------------------------------------------------------------
+| Global Middleware
+|--------------------------------------------------------------------------
+*/
 
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-}
+app.use(cors());
+
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
+app.use(morgan("dev"));
+
+/*
+|--------------------------------------------------------------------------
+| Health Check
+|--------------------------------------------------------------------------
+*/
+
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "SkillSphere API is running.",
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
 app.use("/api", routes);
 
-app.use(notFound);
-app.use(errorHandler);
+/*
+|--------------------------------------------------------------------------
+| 404 Handler
+|--------------------------------------------------------------------------
+*/
 
-module.exports = app;
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: "Route not found",
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| Global Error Handler
+|--------------------------------------------------------------------------
+*/
+
+app.use(errorMiddleware);
+
+export default app;

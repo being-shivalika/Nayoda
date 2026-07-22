@@ -1,17 +1,54 @@
-const router = require("express").Router();
+import { Router } from "express";
 
-router.use("/auth", require("./authRoutes"));
-router.use("/freelancers", require("./freelancerRoutes"));
-router.use("/clients", require("./clientRoutes"));
-router.use("/gigs", require("./gigRoutes"));
-router.use("/proposals", require("./proposalRoutes"));
-router.use("/reviews", require("./reviewRoutes"));
-router.use("/messages", require("./messageRoutes"));
-router.use("/payments", require("./paymentRoutes"));
-router.use("/notifications", require("./notificationRoutes"));
-router.use("/disputes", require("./disputeRoutes"));
-router.use("/admin", require("./adminRoutes"));
+// Authentication Routes
+import authRouter from "../modules/auth/auth.route.js";
 
-router.get("/health", (_req, res) => res.status(200).json({ success: true, message: "SkillSphere API is running." }));
+// Media (Cloudinary) Routes
+import mediaRouter from "../modules/media/media.route.js";
 
-module.exports = router;
+// Payment (Razorpay) Routes
+import paymentRouter from "../modules/payments/payment.route.js";
+
+const routes = Router();
+
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
+
+routes.use("/auth", authRouter);
+
+/*
+|--------------------------------------------------------------------------
+| Protected Routes
+|--------------------------------------------------------------------------
+*/
+
+routes.use("/media", mediaRouter);
+routes.use("/payments", paymentRouter);
+
+// router.use("/users", userRoutes);
+// router.use("/jobs", jobRoutes);
+// router.use("/proposals", proposalRoutes);
+// router.use("/reviews", reviewRoutes);
+// router.use("/notifications", notificationRoutes);
+// router.use("/chat", chatRoutes);
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+// router.use("/admin", adminRoutes);
+
+/*
+|--------------------------------------------------------------------------
+| AI Routes
+|--------------------------------------------------------------------------
+*/
+
+// router.use("/ai", aiRoutes);
+
+export default routes;

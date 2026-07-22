@@ -1,35 +1,26 @@
-const http = require("http");
-const dotenv = require("dotenv");
-const { Server } = require("socket.io");
+import "./config/env.js";
 
-dotenv.config();
+import app from "./app.js";
+import connectDB from "./config/database.js";
 
-const app = require("./app");
-const connectDB = require("./config/db");
-const { initSocket } = require("./sockets/socketHandler");
+const PORT = process.env.PORT || 8080;
 
-const PORT = process.env.PORT || 5000;
+const startServer = async () => {
+    try {
+        // Connect to MongoDB
+        await connectDB();
 
-const server = http.createServer(app);
+        // Start Express Server
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+        });
 
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  },
-});
-initSocket(io);
+    } catch (error) {
+        console.error("❌ Failed to start server");
+        console.error(error);
 
-const start = async () => {
-  await connectDB();
-  server.listen(PORT, () => {
-    console.log(`SkillSphere API listening on port ${PORT} [${process.env.NODE_ENV || "development"}]`);
-  });
+        process.exit(1);
+    }
 };
 
-start();
-
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled rejection:", err);
-  server.close(() => process.exit(1));
-});
+startServer();
